@@ -1,4 +1,14 @@
 /**
+ * A self contained implementation of eigendecompostiion using the power iteration method and
+ * shifting by deflation.  This implementation uses a simple array based matrix implementation
+ * to allow this code to be embedded without external dependencies.
+ *
+ *   See:  https://en.wikipedia.org/wiki/Power_iteration
+ */
+
+
+
+/**
  *  Power Iteration algorithm for eigenvector decomposition.  Computes the greatest eigenvalue of
  *  the input matrix and its corresponding eigenvector.  Input matrix MUST be diagonalizable.
  *
@@ -171,7 +181,8 @@ function multiply_matrix_scalar(m, s) {
  * @return {[][]}          The output matrix with rows and columns transposed
  */
 function transpose(matrix) {
-    return matrix[0].map((col, i) => matrix.map(row => row[i]));
+    let v = matrix[0].map((col, i) => matrix.map(row => row[i]));
+    return v;
 }
 
 

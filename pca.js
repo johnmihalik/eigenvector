@@ -1,4 +1,8 @@
-
+/**
+ * Print a matrix nicely for the console.
+ *
+ * @param  {Array} matrix  The m x n matrix to output.  Matrices are simple 2 dimensional arrays.
+ */
 // Print a matrix formatted nicely
 function pretty_print_matrix(mat) {
     for ( let i = 0; i < mat.length; i++) {
@@ -13,9 +17,14 @@ function pretty_print_matrix(mat) {
     }
 }
 
-// Extract a column vector x from the matrix
+/**
+ *  Extract a column vector at column index x from the matrix.
+ *
+ * @param  {[][]} matrix  The m x n matrix to output.  Matrices are simple 2 dimensional arrays.
+ * @param  {Number} x     The column index to extract
+ * @return {[][]}         The column vector of the matrix (one element per row)
+ */
 function column(mat, x) {
-//    let col = new Array(mat.length);
     let col = new Array(mat.length).fill(0).map(() => new Array(1).fill(0));
     for (let i = 0; i < mat.length; i ++) {
         col[i][0] = mat[i][x];
@@ -23,7 +32,13 @@ function column(mat, x) {
     return col;
 }
 
-// Multiply 2 matrices together
+/**
+ *  Multiply 2 matrices together.  Note matrices must be compatible, n == r.  Output is a m x s matrix.
+ *
+ * @param  {[][]} m1  An m x n matrix
+ * @param  {[][]} m2  An r x s matrix
+ * @return {[][]}     The output product
+ */
 function multiply_matrices(m1, m2) {
     var result = [];
     for (var i = 0; i < m1.length; i++) {
@@ -36,31 +51,62 @@ function multiply_matrices(m1, m2) {
             result[i][j] = sum;
         }
     }
+
+    // If the result is a scalar dot product, just return the scalar value
+    // This simplifies the results with vector dot products
+    if (result.length == 1 && result[0].length == 1) {
+        return result[0][0];
+    }
     return result;
 }
 
-// Multiple a matrix and a scalar value
-function multiply_matrix_scalar(m, v) {
-    var result = [];
+/**
+ *  Multiple a matrix and a simple scalar value
+ *
+ * @param  {[][]} m    An m x n matrix
+ * @param  {Number} s  The scalar to multiply the entries by
+ * @return {[][]}      The output product
+ */
+function multiply_matrix_scalar(m, s) {
+    let result = [];
     for (var i = 0; i < m.length; i++) {
         result[i] = [];
-        for (var j = 0; j < m[0].length; j++) {
-            result[i][j] = m[i][j] * v;
+        for (let j = 0; j < m[0].length; j++) {
+            result[i][j] = m[i][j] * s;
         }
     }
     return result;
 }
-// Transpose a matrix by exchanging rows and columns
+
+/**
+ *  Transpose a matrix
+ *
+ * @param  {[][]} matrix   An m x n matrix
+ * @return {[][]}          The output matrix with rows and columns transposed
+ */
 function transpose(matrix) {
     return matrix[0].map((col, i) => matrix.map(row => row[i]));
 }
 
-// Deep copy an array object
+
+/**
+ *  deep copy an array object with nested elements
+ *
+ * @param  {Object}   The object to copy
+ * @return {Object}   The copied output object
+ */
 function deep_copy(a) {
     return JSON.parse(JSON.stringify(a));
 }
 
-// Sum the squared differences of 2 vectors
+
+/**
+ *  Sum the squared differences of 2 vectors
+ *
+ * @param  {[][]} v1   An m x 1 vector
+ * @param  {[][]} v2   An m x 1 vector
+ * @return {Number}    The sum of the squared differences
+ */
 function squared_difference(v1, v2) {
     let sum = 0.0;
     for (let i = 0; i < v1.length; i ++) {
@@ -70,7 +116,89 @@ function squared_difference(v1, v2) {
 }
 
 
-function eigen(mat) {
+/**
+ *  Subtract matrices A - B  Note matrices must be compatible equal sizes
+ *
+ * @param  {[][]} m1  An m x n matrix
+ * @param  {[][]} m2  An r x s matrix
+ * @return {[][]}     The output difference
+ */
+function subtract_matrices(A,B) {
+    let result = [];
+    for (let i = 0; i < A.length; i++) {
+        result[i] = [];
+        for (var j = 0; j < A[0].length; j++) {
+            result[i][j] = A[i][j] - B[i][j];
+        }
+    }
+    return result;
+}
+
+//
+/**
+ *  Utility function to simplify a vector into a standard array
+ *
+ * @param  {[][]} v1   An m x 1 vector
+ * @return {Array}    A simple array of the vector values
+ */
+function flatten_vector(v) {
+    let v_new = [];
+    for (let i = 0; i < v.length; i++) {
+        v_new[i] = v[i][0];
+    }
+    return v_new;
+}
+
+
+/**
+ *   Uses deflation to compute remaining eigenvectors.  At each iteration the most
+ *   prominent eigenvector is computed.  This eigenvectors contribution is then
+ *   removed from the original input matrix iteratively until all eigenvectors have
+ *   been computed.
+ *
+ *   See: https://math.stackexchange.com/questions/768882/power-method-for-finding-all-eigenvectors
+ *
+ * @param  {[][]} m1  An m x n matrix
+ * @param  {[][]} m2  An r x s matrix
+ * @return {[][]}     The output difference
+ */
+function shift_deflate(M, eigenvalue, eigenvector)  {
+    let len = Math.sqrt( multiply_matrices(transpose(eigenvector), eigenvector)  );
+    let U = multiply_matrix_scalar(eigenvector, 1.0/len);
+    let delta = multiply_matrix_scalar( multiply_matrices(U, transpose(U)) , eigenvalue);
+    let M_new = subtract_matrices(M, delta);
+    return M_new;
+}
+
+/**
+ *  Computes the eigenvalue for the input eigenvector.
+ *
+ *     lambda = transpose(v) * M * v
+ *
+ * @param M
+ * @param eigenvector
+ * @return {*[][]}
+ */
+function eigenvalue_of_vector(M, eigenvector) {
+    // Xt * M * x
+    ev = multiply_matrices( multiply_matrices(transpose(eigenvector), M ), eigenvector);
+    return ev;
+}
+
+
+/**
+ *  Normalize a vector, divide by the length
+ *
+ * @param v
+ * @return {*[][]}
+ */
+function normalize_vector(v) {
+    let len = Math.sqrt( multiply_matrices(transpose(v), v));
+    let unit_vector = multiply_matrix_scalar(v, 1.0 / len);
+    return unit_vector;
+}
+
+function pca(mat) {
 
     let X = deep_copy(mat);
     pretty_print_matrix(X);
@@ -142,7 +270,7 @@ const mat = [
     [5, 4, -3]
 ];
 
-eigen(mat);
+pca(mat);
 
 /*
 
